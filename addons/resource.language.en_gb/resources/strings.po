@@ -24123,6 +24123,18 @@ msgctxt "#39201"
 msgid "HDR10+"
 msgstr ""
 
+#. Setting to make CC subtitles for hearing impaired only
+#: system/settings/settings.xml
+msgctxt "#39204"
+msgid "Set CC subtitles only for the hearing impaired"
+msgstr ""
+
+#. Help text for setting of label #39204
+#: system/settings/settings.xml
+msgctxt "#39205"
+msgid "By enabling it, CC subtitles will be labeled for the hearing impaired; this will affect the automatic selection of subtitles, which unless otherwise specified will not be displayed by default."
+msgstr ""
+
 #. Dolby Vision RPU Conversion
 #: system/settings/settings.xml
 msgctxt "#39300"
