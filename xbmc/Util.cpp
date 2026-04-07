@@ -2202,6 +2202,16 @@ ExternalStreamInfo CUtil::GetExternalStreamDetailsFromFilename(const std::string
         info.flag |= StreamFlags::FLAG_FORCED;
         continue;
       }
+      else if (!flag_tmp.compare("original"))
+      {
+        info.flag |= StreamFlags::FLAG_ORIGINAL;
+        continue;
+      }
+      else if (!flag_tmp.compare("impaired"))
+      {
+        info.flag |= StreamFlags::FLAG_HEARING_IMPAIRED;
+        continue;
+      }
 
       if (info.language.empty())
       {
