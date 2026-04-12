@@ -2536,6 +2536,8 @@ void CAMLCodec::SetDrain(bool drain)
 
 void CAMLCodec::SetSpeed(int speed)
 {
+  int old_speed = m_speed;
+  
   if (m_speed == speed)
     return;
 
@@ -2556,6 +2558,15 @@ void CAMLCodec::SetSpeed(int speed)
     case DVD_PLAYSPEED_NORMAL:
       m_dll->codec_set_cntl_mode(&am_private->vcodec, TRICKMODE_NONE);
       ResetFrameTimeoutClock();
+      // Reset buffer level and frame timeout when resuming from pause
+      if (old_speed == DVD_PLAYSPEED_PAUSE)
+      {
+        m_buffer_level_ready = false;
+        m_minimum_buffer_level = 0.0f;
+        m_cur_pts = DVD_NOPTS_VALUE;
+        m_last_pts = DVD_NOPTS_VALUE;
+        CLog::Log(LOGDEBUG, "CAMLCodec::SetSpeed, resumed from pause, resetting buffer state");
+      }
       break;
     default:
       if ((am_private->video_format == VFORMAT_H264) || (am_private->video_format == VFORMAT_H264_4K2K))
