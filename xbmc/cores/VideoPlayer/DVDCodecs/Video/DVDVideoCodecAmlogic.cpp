@@ -838,12 +838,16 @@ void CDVDVideoCodecAmlogic::FrameRateTracking(uint8_t *pData, int iSize, double 
         m_hints.codecOptions |= CODEC_INTERLACED;
         m_hints.codecOptions &= ~CODEC_PROGRESSIVE;
         CLog::Log(LOGDEBUG, "{}: VC1 is interlaced, setting CODEC_INTERLACED flag", __MODULE_NAME__);
+        // Set video interlaced status
+        m_processInfo.SetVideoInterlaced(true);
       }
       else
       {
         m_hints.codecOptions &= ~CODEC_INTERLACED;
         m_hints.codecOptions |= CODEC_PROGRESSIVE;
         CLog::Log(LOGDEBUG, "{}: VC1 is progressive, setting CODEC_PROGRESSIVE flag", __MODULE_NAME__);
+        // Set video interlaced status
+        m_processInfo.SetVideoInterlaced(false);
         
         // For progressive VC1 video, check if the frame rate is double the actual rate
         double framerate = static_cast<double>(m_hints.fpsrate) / m_hints.fpsscale;
