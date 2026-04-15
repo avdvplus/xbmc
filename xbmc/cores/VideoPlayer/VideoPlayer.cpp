@@ -3979,12 +3979,12 @@ bool CVideoPlayer::OpenVideoStream(CDVDStreamInfo& hint, bool reset)
                                                    (double)DVD_TIME_BASE * hint.fpsscale /
                                                    (hint.fpsrate * (hint.interlaced ? 2 : 1)));
 
-      if (MathUtils::FloatEquals(25.0f, static_cast<float>(framerate), 0.01f))
+      if (hint.interlaced && MathUtils::FloatEquals(25.0f, static_cast<float>(framerate), 0.01f))
       {
         framerate = 50.0;
         m_processInfo->SetVideoInterlaced(true);
       }
-      if (MathUtils::FloatEquals(29.97f, static_cast<float>(framerate), 0.01f))
+      if (hint.interlaced && MathUtils::FloatEquals(29.97f, static_cast<float>(framerate), 0.01f))
       {
         framerate = 60000.0 / 1001.0;
         m_processInfo->SetVideoInterlaced(true);

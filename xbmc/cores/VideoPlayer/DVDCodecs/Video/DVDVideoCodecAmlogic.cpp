@@ -786,7 +786,7 @@ void CDVDVideoCodecAmlogic::FrameRateTracking(uint8_t *pData, int iSize, double 
       if (m_hints.fpsrate && m_hints.fpsscale)
       {
         m_framerate = static_cast<float>(m_hints.fpsrate) / m_hints.fpsscale;
-        if (m_hints.codecOptions & CODEC_UNKNOWN_I_P)
+        if ((m_hints.codecOptions & CODEC_UNKNOWN_I_P) && (m_hints.codecOptions & CODEC_INTERLACED))
           if (std::abs(m_framerate - 25.0) < 0.02 || std::abs(m_framerate - 29.97) < 0.02)
           {
             m_framerate += m_framerate;
