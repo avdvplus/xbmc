@@ -844,6 +844,28 @@ void CDVDVideoCodecAmlogic::FrameRateTracking(uint8_t *pData, int iSize, double 
         m_hints.codecOptions &= ~CODEC_INTERLACED;
         m_hints.codecOptions |= CODEC_PROGRESSIVE;
         CLog::Log(LOGDEBUG, "{}: VC1 is progressive, setting CODEC_PROGRESSIVE flag", __MODULE_NAME__);
+        
+        // For progressive VC1 video, check if the frame rate is double the actual rate
+        double framerate = static_cast<double>(m_hints.fpsrate) / m_hints.fpsscale;
+        // Check if the frame rate is approximately double a common frame rate
+        double half_framerate = framerate / 2.0;
+        // Common frame rates to check
+        double common_frame_rates[] = {23.976, 24.0, 25.0, 29.97, 30.0};
+        bool is_double_rate = false;
+        
+        for (double common_rate : common_frame_rates) {
+          if (std::abs(half_framerate - common_rate) < 0.05) {
+            is_double_rate = true;
+            break;
+          }
+        }
+        
+        if (is_double_rate) {
+          // Halve the frame rate for progressive VC1 video
+          m_hints.fpsrate /= 2;
+          framerate /= 2;
+          CLog::Log(LOGDEBUG, "{}: Progressive VC1 video detected, halving frame rate from {:.3f} to {:.3f}", __MODULE_NAME__, framerate * 2, framerate);
+        }
       }
     }
   }
