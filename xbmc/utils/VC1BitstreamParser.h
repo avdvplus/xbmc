@@ -20,6 +20,7 @@ public:
 
   inline bool IsRecoveryPoint(const uint8_t *buf, int buf_size);
   inline bool IsIFrame(const uint8_t *buf, int buf_size);
+  bool GetScanType(const uint8_t *buf, int buf_size, bool *is_interlaced, bool *is_progressive);
 
 protected:
   bool vc1_parse_frame(const uint8_t *buf, const uint8_t *buf_end, bool sequenceOnly);

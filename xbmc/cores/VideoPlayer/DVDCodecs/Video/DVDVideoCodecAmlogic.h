@@ -14,6 +14,7 @@
 #include "threads/CriticalSection.h"
 #include "cores/VideoPlayer/Buffers/VideoBuffer.h"
 #include "utils/BitstreamConverter.h"
+#include "utils/VC1BitstreamParser.h"
 
 #include <set>
 #include <atomic>
@@ -109,6 +110,7 @@ protected:
 
   std::unique_ptr<CBitstreamParser>    m_bitparser;
   std::unique_ptr<CBitstreamConverter> m_bitstream;
+  std::unique_ptr<CVC1BitstreamParser>  m_vc1BitstreamParser;
 private:
   bool DualLayerConvert(uint8_t *pData, uint32_t iSize, const DemuxPacket &packet);
   bool SingleLayerConvert(uint8_t *pData, uint32_t iSize, const DemuxPacket &packet) const;

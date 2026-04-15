@@ -61,6 +61,82 @@ bool CVC1BitstreamParser::IsIFrame(const uint8_t *buf, int buf_size)
   return vc1_parse_frame(buf, buf + buf_size, false);
 };
 
+bool CVC1BitstreamParser::GetScanType(const uint8_t *buf, int buf_size, bool *is_interlaced, bool *is_progressive)
+{
+  if (!is_interlaced || !is_progressive)
+    return false;
+
+  *is_interlaced = false;
+  *is_progressive = true;
+
+  uint32_t state = -1;
+  const uint8_t *buf_end = buf + buf_size;
+  
+  for (;;)
+  {
+    buf = find_start_code(buf, buf_end, &state);
+    if (buf >= buf_end)
+      break;
+    
+    if (buf[-1] == VC1_SEQUENCE)
+    {
+      if (m_Profile != VC1_PROFILE_NOPROFILE)
+        continue;
+      CBitstreamReader br(buf, buf_end - buf);
+      m_Profile = static_cast<uint8_t>(br.ReadBits(2));
+      if (m_Profile == VC1_PROFILE_ADVANCED)
+      {
+        br.SkipBits(39);
+        m_AdvInterlace = br.ReadBits(1);
+      }
+      else
+      {
+        br.SkipBits(22);
+        m_SimpleSkipBits = 2;
+        if (br.ReadBits(1))
+          ++m_SimpleSkipBits;
+        m_MaxBFrames = br.ReadBits(3);
+        br.SkipBits(2);
+        if (br.ReadBits(1))
+          ++m_SimpleSkipBits;
+      }
+    }
+    else if (buf[-1] == VC1_FRAME)
+    {
+      CBitstreamReader br(buf, buf_end - buf);
+      if (m_Profile == VC1_PROFILE_ADVANCED)
+      {
+        uint8_t fcm;
+        if (m_AdvInterlace) {
+          fcm = br.ReadBits(1);
+          if (fcm)
+            fcm = br.ReadBits(1) + 1;
+        }
+        else
+          fcm = VC1_FRAME_PROGRESSIVE;
+        
+        if (fcm == VC1_FIELD_INTERLACE || fcm == VC1_FRAME_INTERLACE) {
+          *is_interlaced = true;
+          *is_progressive = false;
+        }
+        else {
+          *is_interlaced = false;
+          *is_progressive = true;
+        }
+        return true;
+      }
+      else if (m_Profile != VC1_PROFILE_NOPROFILE)
+      {
+        // For Simple/Main Profile, assume progressive unless interlace is detected
+        *is_interlaced = false;
+        *is_progressive = true;
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 bool CVC1BitstreamParser::vc1_parse_frame(const uint8_t *buf, const uint8_t *buf_end, bool sequence_only)
 {
   uint32_t state = -1;

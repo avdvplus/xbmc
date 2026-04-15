@@ -1892,6 +1892,11 @@ bool CAMLCodec::OpenDecoder(bool restart)
       // vc1 in an avi file
       if (m_hints.ptsinvalid)
         am_private->gcodec.param = (void*)KEYFRAME_PTS_ONLY;
+      // Pass interlaced flag to driver
+      if (m_hints.codecOptions & CODEC_INTERLACED) {
+        CLog::Log(LOGDEBUG, "CAMLCodec::OpenDecoder VC1 is interlaced, setting INTERLACED flag in param");
+        am_private->gcodec.param = (void*)((std::uintptr_t)am_private->gcodec.param | 0x80000000); // Use highest bit for interlaced flag
+      }
       am_private->gcodec.dec_mode = STREAM_TYPE_SINGLE;
       break;
     case VFORMAT_HEVC:

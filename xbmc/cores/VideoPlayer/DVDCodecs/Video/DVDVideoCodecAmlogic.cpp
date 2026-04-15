@@ -80,6 +80,7 @@ CDVDVideoCodecAmlogic::CDVDVideoCodecAmlogic(CProcessInfo &processInfo)
     }
   }
 
+  m_vc1BitstreamParser = std::make_unique<CVC1BitstreamParser>();
   UpdateAppendCMv40SettingCache();
 }
 
@@ -818,6 +819,30 @@ void CDVDVideoCodecAmlogic::FrameRateTracking(uint8_t *pData, int iSize, double 
       m_hints.width    = m_h264_sequence->width;
       m_hints.height   = m_h264_sequence->height;
       m_hints.aspect   = m_h264_sequence->ratio;
+    }
+  }
+
+  // VC1 scan type detection
+  if (m_hints.codec == AV_CODEC_ID_VC1 && m_vc1BitstreamParser)
+  {
+    bool is_interlaced = false;
+    bool is_progressive = true;
+    if (m_vc1BitstreamParser->GetScanType(pData, iSize, &is_interlaced, &is_progressive))
+    {
+      CLog::Log(LOGDEBUG, "{}: detected VC1 scan type - interlaced: {}, progressive: {}",
+        __MODULE_NAME__, is_interlaced, is_progressive);
+      
+      // Update codec options based on detected scan type
+      if (is_interlaced)
+      {
+        m_hints.codecOptions |= CODEC_INTERLACED;
+        CLog::Log(LOGDEBUG, "{}: VC1 is interlaced, setting CODEC_INTERLACED flag", __MODULE_NAME__);
+      }
+      else
+      {
+        m_hints.codecOptions &= ~CODEC_INTERLACED;
+        CLog::Log(LOGDEBUG, "{}: VC1 is progressive, clearing CODEC_INTERLACED flag", __MODULE_NAME__);
+      }
     }
   }
 }
