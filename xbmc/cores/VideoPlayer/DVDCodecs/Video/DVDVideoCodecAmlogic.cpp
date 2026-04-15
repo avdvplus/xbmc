@@ -868,6 +868,8 @@ void CDVDVideoCodecAmlogic::FrameRateTracking(uint8_t *pData, int iSize, double 
           // Halve the frame rate for progressive VC1 video
           m_hints.fpsrate /= 2;
           framerate /= 2;
+          m_framerate = static_cast<float>(framerate);
+          m_processInfo.SetVideoFps(m_framerate);
           CLog::Log(LOGDEBUG, "{}: Progressive VC1 video detected, halving frame rate from {:.3f} to {:.3f}", __MODULE_NAME__, framerate * 2, framerate);
         }
       }
