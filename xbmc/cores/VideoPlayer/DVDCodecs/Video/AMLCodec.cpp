@@ -1892,11 +1892,14 @@ bool CAMLCodec::OpenDecoder(bool restart)
       // vc1 in an avi file
       if (m_hints.ptsinvalid)
         am_private->gcodec.param = (void*)KEYFRAME_PTS_ONLY;
-      // Pass interlaced flag to driver
-      if (m_hints.codecOptions & CODEC_INTERLACED) {
-        CLog::Log(LOGDEBUG, "CAMLCodec::OpenDecoder VC1 is interlaced, setting INTERLACED flag in param");
-        am_private->gcodec.param = (void*)((std::uintptr_t)am_private->gcodec.param | 0x80000000); // Use highest bit for interlaced flag
-      }
+      // Pass interlaced and progressive flags to driver
+        if (m_hints.codecOptions & CODEC_INTERLACED) {
+          CLog::Log(LOGDEBUG, "CAMLCodec::OpenDecoder VC1 is interlaced, setting INTERLACED flag in param");
+          am_private->gcodec.param = (void*)((std::uintptr_t)am_private->gcodec.param | 0x80000000); // Use highest bit for interlaced flag
+        } else if (m_hints.codecOptions & CODEC_PROGRESSIVE) {
+          CLog::Log(LOGDEBUG, "CAMLCodec::OpenDecoder VC1 is progressive, setting PROGRESSIVE flag in param");
+          am_private->gcodec.param = (void*)((std::uintptr_t)am_private->gcodec.param | 0x40000000); // Use second highest bit for progressive flag
+        }
       am_private->gcodec.dec_mode = STREAM_TYPE_SINGLE;
       break;
     case VFORMAT_HEVC:

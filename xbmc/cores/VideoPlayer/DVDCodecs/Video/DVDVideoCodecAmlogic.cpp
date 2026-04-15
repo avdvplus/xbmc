@@ -836,12 +836,14 @@ void CDVDVideoCodecAmlogic::FrameRateTracking(uint8_t *pData, int iSize, double 
       if (is_interlaced)
       {
         m_hints.codecOptions |= CODEC_INTERLACED;
+        m_hints.codecOptions &= ~CODEC_PROGRESSIVE;
         CLog::Log(LOGDEBUG, "{}: VC1 is interlaced, setting CODEC_INTERLACED flag", __MODULE_NAME__);
       }
       else
       {
         m_hints.codecOptions &= ~CODEC_INTERLACED;
-        CLog::Log(LOGDEBUG, "{}: VC1 is progressive, clearing CODEC_INTERLACED flag", __MODULE_NAME__);
+        m_hints.codecOptions |= CODEC_PROGRESSIVE;
+        CLog::Log(LOGDEBUG, "{}: VC1 is progressive, setting CODEC_PROGRESSIVE flag", __MODULE_NAME__);
       }
     }
   }
