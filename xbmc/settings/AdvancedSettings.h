@@ -345,6 +345,8 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     int  m_guiAlgorithmDirtyRegions;
     bool m_guiSmartRedraw;
     bool m_guiVideoLayoutTransparent{false};
+    bool m_guiMipMapping;
+    float m_guiMipMappingSharpen;
     unsigned int m_guiAVChangeFlagTimeout;
     unsigned int m_addonPackageFolderSize;
 

@@ -431,6 +431,8 @@ void CAdvancedSettings::Initialize()
   m_guiVisualizeDirtyRegions = false;
   m_guiAlgorithmDirtyRegions = 3;
   m_guiSmartRedraw = false;
+  m_guiMipMapping = false;
+  m_guiMipMappingSharpen = 0.5f;
   m_guiAVChangeFlagTimeout = 11;
   m_airTunesPort = 36666;
   m_airPlayPort = 36667;
@@ -1337,6 +1339,8 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
     XMLUtils::GetInt(pElement, "algorithmdirtyregions",     m_guiAlgorithmDirtyRegions);
     XMLUtils::GetBoolean(pElement, "smartredraw", m_guiSmartRedraw);
     XMLUtils::GetBoolean(pElement, "transparentvideolayout", m_guiVideoLayoutTransparent);
+    XMLUtils::GetBoolean(pElement, "mipmapping", m_guiMipMapping);
+    XMLUtils::GetFloat(pElement, "mipmappingsharpen", m_guiMipMappingSharpen, 0.0f, 3.0f);
     XMLUtils::GetUInt(pElement, "avchangeflagtimeout", m_guiAVChangeFlagTimeout);
   }
 
