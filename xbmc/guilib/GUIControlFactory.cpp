@@ -881,6 +881,7 @@ CGUIControl* CGUIControlFactory::Create(int parentID,
   bool showOnePage = true;
   bool scrollOut = true;
   int preloadItems = 0;
+  bool unloadDelayed = false;
 
   CLabelInfo labelInfo, labelInfoMono;
 
@@ -1165,7 +1166,8 @@ CGUIControl* CGUIControlFactory::Create(int parentID,
   XMLUtils::GetBoolean(pControlNode, "showonepage", showOnePage);
   XMLUtils::GetInt(pControlNode, "focusposition", focusPosition);
   XMLUtils::GetInt(pControlNode, "scrolltime", scrollTime);
-  XMLUtils::GetInt(pControlNode, "preloaditems", preloadItems, 0, 2);
+  XMLUtils::GetInt(pControlNode, "preloaditems", preloadItems, 0, 1);
+  XMLUtils::GetBoolean(pControlNode, "unloaddelayed", unloadDelayed);
 
   XMLUtils::GetBoolean(pControlNode, "usecontrolcoords", useControlCoords);
   XMLUtils::GetBoolean(pControlNode, "renderfocusedlast", renderFocusedLast);
@@ -1591,7 +1593,7 @@ CGUIControl* CGUIControlFactory::Create(int parentID,
       GetScroller(pControlNode, "scrolltime", scroller);
 
       control = new CGUIPanelContainer(parentID, id, posX, posY, width, height, orientation,
-                                       scroller, preloadItems);
+                                       scroller, preloadItems, unloadDelayed);
       auto pcontrol = static_cast<CGUIPanelContainer*>(control);
       pcontrol->LoadLayout(pControlNode);
       pcontrol->LoadListProvider(pControlNode, defaultControl, defaultAlways);
