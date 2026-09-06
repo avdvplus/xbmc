@@ -280,8 +280,8 @@ CRepository::FetchStatus CRepository::FetchIfChanged(const std::string& oldCheck
     // not possible)
     recheckAfter = *std::min_element(recheckAfterTimes.begin(), recheckAfterTimes.end());
     // If all directories have checksums and they match the last one, nothing has changed
-    if (dirChecksums.size() == m_dirs.size() && oldChecksum == checksum)
-      return STATUS_NOT_MODIFIED;
+    //if (dirChecksums.size() == m_dirs.size() && oldChecksum == checksum)
+    //  return STATUS_NOT_MODIFIED;
   }
 
   for (const auto& dirTuple : dirChecksums)
