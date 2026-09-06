@@ -15,7 +15,7 @@
 #include "utils/StringUtils.h"
 
 CGUIListContainer::CGUIListContainer(int parentID, int controlID, float posX, float posY, float width, float height, ORIENTATION orientation, const CScroller& scroller, int preloadItems)
-    : CGUIBaseContainer(parentID, controlID, posX, posY, width, height, orientation, scroller, preloadItems)
+    : CGUIBaseContainer(parentID, controlID, posX, posY, width, height, orientation, scroller, preloadItems, false)
 {
   ControlType = GUICONTAINER_LIST;
   m_type = VIEW_TYPE_LIST;
@@ -276,7 +276,7 @@ CGUIListContainer::CGUIListContainer(int parentID, int controlID, float posX, fl
                                  const CLabelInfo& labelInfo, const CLabelInfo& labelInfo2,
                                  const CTextureInfo& textureButton, const CTextureInfo& textureButtonFocus,
                                  float textureHeight, float itemWidth, float itemHeight, float spaceBetweenItems)
-: CGUIBaseContainer(parentID, controlID, posX, posY, width, height, VERTICAL, 200, 0)
+: CGUIBaseContainer(parentID, controlID, posX, posY, width, height, VERTICAL, 200, 0, false)
 {
   m_layouts.emplace_back();
   m_layouts.back().CreateListControlLayouts(width, textureHeight + spaceBetweenItems, false, labelInfo, labelInfo2, textureButton, textureButtonFocus, textureHeight, itemWidth, itemHeight, "", "");

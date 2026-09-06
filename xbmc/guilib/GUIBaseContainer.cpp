@@ -40,7 +40,7 @@ using namespace KODI;
 #define SCROLLING_GAP   200U
 #define SCROLLING_THRESHOLD 300U
 
-CGUIBaseContainer::CGUIBaseContainer(int parentID, int controlID, float posX, float posY, float width, float height, ORIENTATION orientation, const CScroller& scroller, int preloadItems)
+CGUIBaseContainer::CGUIBaseContainer(int parentID, int controlID, float posX, float posY, float width, float height, ORIENTATION orientation, const CScroller& scroller, int preloadItems, bool unloadDelayed)
     : IGUIContainer(parentID, controlID, posX, posY, width, height)
     , m_scroller(scroller)
 {
@@ -55,6 +55,7 @@ CGUIBaseContainer::CGUIBaseContainer(int parentID, int controlID, float posX, fl
   m_layout = nullptr;
   m_focusedLayout = nullptr;
   m_cacheItems = preloadItems;
+  m_unloadDelayed = unloadDelayed;
   m_scrollItemsPerFrame = 0.0f;
   m_type = VIEW_TYPE_NONE;
   m_autoScrollMoveTime = 0;
@@ -85,6 +86,7 @@ CGUIBaseContainer::CGUIBaseContainer(const CGUIBaseContainer& other)
     m_cursor(other.m_cursor),
     m_offset(other.m_offset),
     m_cacheItems(other.m_cacheItems),
+    m_unloadDelayed(other.m_unloadDelayed),
     m_scrollTimer(other.m_scrollTimer),
     m_lastScrollStartTimer(other.m_lastScrollStartTimer),
     m_pageChangeTimer(other.m_pageChangeTimer),
@@ -1519,18 +1521,18 @@ void CGUIBaseContainer::GetCacheOffsets(int &cacheBefore, int &cacheAfter) const
 {
   if (m_scroller.IsScrollingDown())
   {
-    cacheBefore = 0;
-    cacheAfter = m_cacheItems;
+    cacheBefore = !m_unloadDelayed ? 0 : 1;
+    cacheAfter = m_cacheItems > 0 ? 1 : 0;
   }
   else if (m_scroller.IsScrollingUp())
   {
-    cacheBefore = m_cacheItems;
+    cacheBefore = !m_unloadDelayed && m_cacheItems == 0 ? 0 : 1;
     cacheAfter = 0;
   }
   else
   {
-    cacheBefore = m_cacheItems / 2;
-    cacheAfter = m_cacheItems / 2;
+    cacheBefore = m_unloadDelayed && m_cacheItems == 0 ? 1 : m_cacheItems;
+    cacheAfter = m_cacheItems;
   }
 }
 

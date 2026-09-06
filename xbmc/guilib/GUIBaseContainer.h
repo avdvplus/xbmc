@@ -35,7 +35,7 @@ class CGUIListItemLayout;
 class CGUIBaseContainer : public IGUIContainer
 {
 public:
-  CGUIBaseContainer(int parentID, int controlID, float posX, float posY, float width, float height, ORIENTATION orientation, const CScroller& scroller, int preloadItems);
+  CGUIBaseContainer(int parentID, int controlID, float posX, float posY, float width, float height, ORIENTATION orientation, const CScroller& scroller, int preloadItems, bool unloadDelayed);
   explicit CGUIBaseContainer(const CGUIBaseContainer& other);
   ~CGUIBaseContainer(void) override;
 
@@ -234,6 +234,7 @@ private:
   int m_cursor;
   int m_offset;
   int m_cacheItems;
+  bool m_unloadDelayed;
   CStopWatch m_scrollTimer;
   CStopWatch m_lastScrollStartTimer;
   CStopWatch m_pageChangeTimer;
