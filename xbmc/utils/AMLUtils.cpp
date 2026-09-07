@@ -1407,7 +1407,11 @@ void set_vsvdb_payload_ver(enum DV_TYPE dv_type, int max_lum_nits_value, int sou
     return;
   inRecompute = true;
 
+  // cs == 4 (EPSON LS12000, ported from Pannal PR #25) always forces V2 -- its
+  // custom/hardcoded coordinates are only handled by CalculateVSVDBPayload_2.
+  int cs(settings()->GetInt(CSettings::SETTING_COREELEC_AMLOGIC_DV_VSVDB_CS));
   if (!aml_dv_vsvdb_v1_enabled() ||
+      (cs == 4) ||
       (dv_type == DV_TYPE_DISPLAY_LED) ||
       (max_lum_nits_value < 400) ||
       ((max_lum_nits_value > 6450) && (source_max_pq == 4095)))

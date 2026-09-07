@@ -8,12 +8,14 @@
 
 #include "DolbyVisionAML.h"
 
+#include <cstdio>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
 #include <string>
 
 #include "ServiceBroker.h"
+#include "settings/AdvancedSettings.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
 #include "settings/lib/SettingsManager.h"
@@ -40,12 +42,14 @@ static void set_visible(const std::string& id, bool visible) {
 }
 
 // Dolby VSVDB Color space data
-static double colour_space_data[4][6] = {
+// cs == 4 (EPSON LS12000) does not index this array: it uses the advancedsettings.xml
+// override or hardcoded fallback values in CalculateVSVDBPayload_2() instead (ported from
+// Pannal PR #25, cleaned up per Pannal's own follow-up commit dropping the dead 4th row).
+static double colour_space_data[3][6] = {
     // Rx--[5/8]-------  Ry--[1/4]------  Gx--[1]-  Gy--[1/2]-----  Bx--[1/8]-------  By--[1/32]--------
       {(0.6800 - 0.625), (0.3200 - 0.25), (0.2650), (0.6900 - 0.5), (0.1500 - 0.125), (0.0600 - 0.03125)}, // DCI-P3  - https://en.wikipedia.org/wiki/DCI-P3
       {(0.7080 - 0.625), (0.2920 - 0.25), (0.1700), (0.7970 - 0.5), (0.1310 - 0.125), (0.0460 - 0.03125)}, // BT.2020 - https://en.wikipedia.org/wiki/Rec._2020
-      {(0.6400 - 0.625), (0.3300 - 0.25), (0.3000), (0.6000 - 0.5), (0.1500 - 0.125), (0.0600 - 0.03125)}, // BT.709  - https://en.wikipedia.org/wiki/Rec._709
-      {(0.6670 - 0.625), (0.3310 - 0.25), (0.3140), (0.6720 - 0.5), (0.1480 - 0.125), (0.0420 - 0.03125)}  // EPSON LS12000
+      {(0.6400 - 0.625), (0.3300 - 0.25), (0.3000), (0.6000 - 0.5), (0.1500 - 0.125), (0.0600 - 0.03125)}  // BT.709  - https://en.wikipedia.org/wiki/Rec._709
 };
 
 static const double* colour_space_row(int cs)
@@ -55,7 +59,6 @@ static const double* colour_space_row(int cs)
     case 0: return colour_space_data[0];
     case 1: return colour_space_data[1];
     case 2: return colour_space_data[2];
-    case 4: return colour_space_data[3];
     default: return colour_space_data[1];
   }
 }
@@ -385,6 +388,74 @@ void CalculateVSVDBPayload_2(enum DV_TYPE dv_type)
       byte[6] = ((xbmc_dv_cap::dv_ry_i & 0x1F) << 3) |
                 (xbmc_dv_cap::dv_by_i & 0x07);
   }
+  else if (cs == 4) // EPSON LS12000 (ported from Pannal PR #25): advancedsettings.xml override, or hardcoded fallback
+  {
+    bool rawBytesParsed = false;
+    std::string customVsvdbCoords = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_dvCustomVsvdb;
+
+    if (!customVsvdbCoords.empty())
+    {
+      unsigned int v[12];
+      CLog::Log(LOGINFO, "CDolbyVisionAML - Found XML Payload: {}", customVsvdbCoords);
+
+      // Parse 12 colon-separated hexadecimal bytes (verbatim Vertex2 format)
+      if (sscanf(customVsvdbCoords.c_str(), "%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x",
+                 &v[0], &v[1], &v[2], &v[3], &v[4], &v[5], &v[6], &v[7], &v[8], &v[9], &v[10], &v[11]) == 12)
+      {
+        bool valid = true;
+        for (int i = 0; i < 12; i++)
+        {
+          if (v[i] > 0xFF)
+          {
+            valid = false;
+            break;
+          }
+        }
+
+        if (valid)
+        {
+          // v[0..7] are parsed and discarded to accept full hex strings natively.
+          // Map the chroma bytes (9-12 of the payload) to the Amlogic registers.
+          byte[3] = static_cast<unsigned char>(v[8]);
+          byte[4] = static_cast<unsigned char>(v[9]);
+          byte[5] = static_cast<unsigned char>(v[10]);
+          byte[6] = static_cast<unsigned char>(v[11]);
+          rawBytesParsed = true;
+          CLog::Log(LOGINFO, "CDolbyVisionAML - XML Payload parsed successfully!");
+        }
+        else
+        {
+          CLog::Log(LOGERROR, "CDolbyVisionAML - Out-of-bounds byte values detected in XML Payload!");
+        }
+      }
+      else
+      {
+        CLog::Log(LOGERROR, "CDolbyVisionAML - Failed to parse XML Payload format! Expected 12 hex bytes separated by colons.");
+      }
+    }
+    else
+    {
+      CLog::Log(LOGDEBUG, "CDolbyVisionAML - XML Payload is empty, using hardcoded Epson values");
+    }
+
+    if (!rawBytesParsed)
+    {
+      // Fallback calibrated coordinates for Epson LS12000 (Rx: 0.667, Ry: 0.331, Gx: 0.314, Gy: 0.672, Bx: 0.148, By: 0.042)
+      const double r_x = 0.6670 - 0.625, r_y = 0.3310 - 0.25, g_x = 0.3140, g_y = 0.6720 - 0.5, b_x = 0.1480 - 0.125, b_y = 0.0420 - 0.03125;
+
+      byte[3] = (static_cast<int>(g_x / one_256) << 1) | // Gx in 7-1
+                (dv_12b_444_bits << 0);                  // 12b 444 (Unsupported [0]) in 0
+
+      byte[4] = (static_cast<int>(g_y / one_256) << 1) | // Gy in 7-1
+                (0 << 0);                                // 10b 444 (Unsupported [0]) in 0
+
+      byte[5] = (static_cast<int>(r_x / one_256) << 3) | // Rx in 7-3
+                (static_cast<int>(b_x / one_256) << 0);  // Bx in 2-0
+
+      byte[6] = (static_cast<int>(r_y / one_256) << 3) | // Ry in 7-3
+                (static_cast<int>(b_y / one_256) << 0);  // By in 2-0
+    }
+  }
   else
   {
     const double* c = colour_space_row(cs);
@@ -553,6 +624,23 @@ void vs10_dv_filler(const SettingConstPtr& setting, std::vector<IntegerSettingOp
   if (support_dv()) add_vs10_dv_bypass(list);
 }
 
+// Ported from Pannal PR #15: dynamic C++ filler for the VSVDB colour space
+// setting, replacing a static XML <options> list. "DISPLAY" (id 3) means the
+// colour space is read from the display's EDID -- this is valid in Player-Led
+// mode too (some DV-LL-only displays with no DV-Std support still provide
+// usable EDID there), so it is NOT restricted to DV_TYPE_DISPLAY_LED here,
+// matching this tree's original unconditional static <option> list.
+void vsvdb_colour_space_filler(const SettingConstPtr& setting, std::vector<IntegerSettingOption>& list, int& current, void* data)
+{
+  list.clear();
+
+  list.emplace_back(g_localizeStrings.Get(60081), 0); // DCI-P3
+  list.emplace_back(g_localizeStrings.Get(60082), 1); // BT.2020
+  list.emplace_back(g_localizeStrings.Get(60083), 2); // BT.709
+  list.emplace_back(g_localizeStrings.Get(60563), 3); // DISPLAY
+  list.emplace_back(g_localizeStrings.Get(60084), 4); // EPSON LS12000
+}
+
 CDolbyVisionAML::CDolbyVisionAML()
 {
   CSysfsPath("/sys/module/amdolby_vision/parameters/dolby_vision_vsif_hold", 0);
@@ -635,6 +723,7 @@ bool CDolbyVisionAML::Setup()
   settingsManager->RegisterSettingOptionsFiller("DolbyVisionVS10HDR10Plus", vs10_hdr10_filler);
   settingsManager->RegisterSettingOptionsFiller("DolbyVisionVS10HDRHLG", vs10_hdr_hlg_filler);
   settingsManager->RegisterSettingOptionsFiller("DolbyVisionVS10DV", vs10_dv_filler);
+  settingsManager->RegisterSettingOptionsFiller("DolbyVisionVSVDBColourSpace", vsvdb_colour_space_filler);
 
   dv_auto_assign_output_type();
 

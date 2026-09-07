@@ -433,6 +433,8 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     float m_videoDecoderStreamBuffer;
     float m_videoDecoderMinimumBuffer;
     float m_videoDecoderMinimumStreamBuffer;
+    std::string m_dvCustomVsvdb; // Raw colon-separated VSVDB hex string from advancedsettings.xml, e.g. "EB:01:46:D0:..." (ported from Pannal PR #25)
+
     bool m_videoDeinterlaceDelayCompensation{false};
     bool m_videoRateFieldHold{true};
     bool m_vc1ForceFrameInt{true};

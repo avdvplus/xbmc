@@ -4543,13 +4543,7 @@
             <!-- <dependency type="visible" setting="coreelec.amlogic.dolbyvision.vsvdb.inject" operator="is">true</dependency> -->
           </dependencies>
           <constraints>
-            <options>
-              <option label="60081">0</option> <!-- DCI-P3 -->
-              <option label="60082">1</option> <!-- BT.2020 -->
-              <option label="60083">2</option> <!-- BT.709 -->
-              <option label="60563">3</option> <!-- DISPLAY -->
-              <option label="60084">4</option> <!-- EPSON LS12000 -->
-            </options>
+            <options>DolbyVisionVSVDBColourSpace</options>
           </constraints>
           <control type="spinner" format="string" />
         </setting>
